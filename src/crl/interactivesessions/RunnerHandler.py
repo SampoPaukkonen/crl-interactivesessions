@@ -1,5 +1,6 @@
 import os
 import sys
+import types
 import pickle
 import base64
 import traceback
@@ -16,7 +17,7 @@ __copyright__ = 'Copyright (C) 2019, Nokia'
 TOKEN = b'+7_<sf80UBtd%umz'
 SIZE_PACKER = struct.Struct('!I')
 PY3 = (sys.version_info.major == 3)
-
+UNICODE_TYPE = str if PY3 else unicode  # pylint: disable=undefined-variable; # noqa F821
 
 def get_python_file_path():
     return os.path.abspath(__file__
@@ -33,6 +34,13 @@ class RunnerHandlerUnableToDeserialize(Exception):
 
 
 _PROXY_CONTAINER = _Container()
+
+
+def create_module(modulename):
+    n = (modulename.encode('utf-8')
+         if not PY3 and isinstance(modulename, UNICODE_TYPE) else
+         modulename)
+    return types.ModuleType(n)
 
 
 def exec_in_module(code, module):
@@ -117,7 +125,7 @@ class _Response(object):
         return self._get_response_from_thread(timeout)
 
     def _get_response_from_thread(self, timeout):
-        if ((timeout is not None and timeout < 0) or self.thread.isAlive()):
+        if (timeout is not None and timeout < 0) or self.thread.isAlive():
             return self._store_and_return_response()
         self.runnerhandler.remove_response(self.response_id)
         return self._serialize(*self.response)

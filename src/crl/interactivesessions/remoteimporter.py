@@ -48,7 +48,8 @@ class RemoteImporter(object):
         self.sys_modules.set_from_remote_proxy(
             self.terminal.get_proxy_object('sys.modules', None))
         self.moduletype.set_from_remote_proxy(
-            self.terminal.get_recursive_proxy('types.ModuleType'))
+            self.terminal.get_recursive_proxy(
+                self._get_remote_obj('create_module')))
         self.exec_in_module.set_from_remote_proxy(
             self.terminal.get_proxy_object(
                 self._get_remote_obj('exec_in_module'), None))
