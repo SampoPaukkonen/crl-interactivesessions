@@ -38,10 +38,13 @@ Remove Files In Target
     RemoteRunner.Execute Command In Target    rm ${file} ${dir}  target=${target}
 
 Remove Files Locally And In Target
-    Run Process  rm  targetlocal  remotescriptfile 
+    Run Process  rm  targetlocal  remotescriptfile
     Remove Files In Target  target1  targetlocal  .
     Remove Files In Target  target2  targetlocal  .
 
+Remove Directory In Target
+    [Arguments]     ${target}   ${dir}
+    RemoteRunner.Execute Command In Target  rm -rf ${dir}   target=${target}
 
 Set RemoteRunner Targets
     RemoteRunner.Set Target    shelldicts=${SHELLDICTS1}
@@ -60,6 +63,15 @@ Verify Run
     Should Be Equal   ${ret.stdout}    out
     Should Be Equal   ${ret.stderr}    err
 
+Test Execute Nohup Background In Target
+    [Arguments]  ${target}
+    ${pid}=         Execute Nohup Background In Target
+    ...             command=echo foo;echo bar >&2;sleep 4
+    ...             target=${target}
+    ${ret}=         Execute Command In Target
+    ...             command=kill ${pid}
+    ...             target=${target}
+    Should Be Equal As Integers     ${ret.status}   0   ${ret}
 
 Test Execute Command In Target
     [Arguments]  ${target}
@@ -71,11 +83,11 @@ Test Execute Command In Target
 Test Execute Background Commands
     [Arguments]  ${target}
     RemoteRunner.Execute Background Command In Target
-    ...   ${COMMAND}; sleep 10    target=${target}    exec_id=test
-    ${ret}=    RemoteRunner.Kill Background Execution   test
+    ...   ${COMMAND}; sleep 10    target=${target}    exec_id=${target}
+    ${ret}=    RemoteRunner.Kill Background Execution   ${target}
     Verify Run   ${ret}    -15
     ${ret_from_wait}=    Remoterunner.Wait Background Execution
-    ...    test   t=1
+    ...    ${target}   t=1
     Should Be Equal    ${ret_from_wait}    ${ret}
 
 Test File Copying
@@ -92,7 +104,7 @@ Test File Copying
          ...    remotefile
          ...    target=${target2}
         filehelper.diff files    targetlocal    remotefile
-   END 
+   END
    [Teardown]  Remove Files Locally And In Target
 
 Test Break Sessions Before Execute Command In Target
@@ -127,11 +139,18 @@ Test Get Proxy From Call
     Should Be Equal   ${ret.status}    0
 
 Test Get Proxy Object
-    [Arguments]  ${target}
+    [Arguments]  ${target}  ${username}
     ${term}=    RemoteRunner.Get Terminal    ${target}
     ${osproxy}=    RemoteRunner.Get Proxy Object In Terminal    ${term}   os
-    ${os}=   Get Variable Value   ${osproxy.uname()[0]}
-    Should Be Equal   ${os}    Linux
+    Log  ${osproxy}
+    #Log  ${osproxy.uname()}
+    ${os}=   Get Variable Value   ${osproxy.getlogin()}
+    Log  ${os}
+    Should Be Equal   ${os}    ${username}
+
+Test Copy Directory To Target
+    [Arguments] ${target}
+
 
 *** Test Cases ***
 
@@ -140,17 +159,19 @@ Template Test Execute Command In Target
     [Template]  Test Execute Command In Target
     target1
     target2
-    
+
 
 Template Test Execute Background Commands
     [Template]  Test Execute Background Commands
     target1
     target2
 
+
 Template Test File Copying
     [Template]  Test File Copying
     target1  target2
     target2  target1
+
 
 Template Test Break Sessions Before Execute Command In Target
     [Template]  Test Break Sessions Before Execute Command In Target
@@ -159,18 +180,24 @@ Template Test Break Sessions Before Execute Command In Target
 
 
 Template Test Hang Sessions Before Execute Command In Target
-    [Template]  Test Hang Sessions Beore Execute Command In Target
+    [Template]  Test Hang Sessions Before Execute Command In Target
     target1
-    target2 
-
+    target2
 
 Template Test Get Proxy From Call
     [Template]  Test Get Proxy From Call
     target1
     target2
 
+
 Template Test Get Proxy Object
     [Template]  Test Get Proxy Object
+    target1  ${HOST1.user}
+    target2  ${HOST2.user}
+   [Teardown]  RemoteRunner.Close
+
+
+Template Test Execute Nohup Background In Target
+    [Template]  Test Execute Nohup Background In Target
     target1
     target2
-

@@ -19,6 +19,7 @@ SIZE_PACKER = struct.Struct('!I')
 PY3 = (sys.version_info.major == 3)
 UNICODE_TYPE = str if PY3 else unicode  # pylint: disable=undefined-variable; # noqa F821
 
+
 def get_python_file_path():
     return os.path.abspath(__file__
                            if __file__.endswith('y') else

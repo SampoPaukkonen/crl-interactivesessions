@@ -400,6 +400,7 @@ class RunnerTerminal(object):
         if out is None:
             raise RunnerTerminalSessionBroken('No output in terminal')
         steeringstring, pickled = out
+        steeringstring = to_bytes(steeringstring)
         outobj = self.__try_to_unpickle(to_bytes(pickled), steeringstring)
         if steeringstring == b'exception':
             if hasattr(outobj, 'trace'):

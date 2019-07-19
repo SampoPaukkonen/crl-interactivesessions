@@ -86,7 +86,7 @@ class SshShell(BashShell):
 
     def _start_in_pexpect(self):
         prompt_re = re.compile(
-            r"\[[a-zA-Z]+@[a-zA-Z]{2,4}-[0-9]*\(.+\)\s(\/.+)+\]")
+            br"\[[a-zA-Z]+@[a-zA-Z]{2,4}-[0-9]*\(.+\)\s(\/.+)+\]")
 
         logger.debug("Awaiting SSH connection to %s", self.ip)
         for password in self.passwords:
