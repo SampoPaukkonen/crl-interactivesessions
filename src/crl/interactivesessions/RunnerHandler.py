@@ -126,7 +126,7 @@ class _Response(object):
         return self._get_response_from_thread(timeout)
 
     def _get_response_from_thread(self, timeout):
-        if (timeout is not None and timeout < 0) or self.thread.isAlive():
+        if (timeout is not None and timeout < 0) or self.thread.is_alive():
             return self._store_and_return_response()
         self.runnerhandler.remove_response(self.response_id)
         return self._serialize(*self.response)
