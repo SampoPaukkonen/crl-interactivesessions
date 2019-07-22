@@ -2,5 +2,5 @@
 ssh-keygen -A
 /usr/sbin/sshd
 umask 0000
-tox -e  combined-robottests -- -V robottests/targethosts.py \
+tox -e  combined-robottests -- -V robottests/targethosts.py --include remoterunner \
     -b debug.log

@@ -92,9 +92,15 @@ Compare Copy Directory To Target
     ...    /tmp/runner/
     ...    0744
     ...    ${target}
+    ${res}=     RemoteScript.Execute Command In Target  ls /tmp/runner/
+    ...     ${target}   1
+    #Log     ${res}
+    #Log     ${res.stdout}
+    Should Be Equal     ${res.status}    0   ${res}
     # Exact feature parity with RemoteScript with this setup cannot be tested
-    [Teardown]    RemoteRunner.Execute Command In Target    target=${target}
-    ...    rm -rf /tmp/runner
+    [Teardown]    RemoteRunner.Execute Command In Target
+    ...           target=${target}
+    ...           command=rm -rf /tmp/runner
 
 Compare Create Directory In Target
     [Arguments]    ${target}
@@ -128,14 +134,27 @@ Compare Execute Background Command In Target
          Sleep    1
          RemoteRunner.Kill Background Execution    test
          ${runner}=    RemoteRunner.Wait Background Execution    test
+         Should Be Equal    ${runner.status}    -15
+         Should Be Equal    ${runner.stdout}    out
+         Should Be Equal    ${runner.stderr}    err
+        #RemoteScript.Execute Background Command In Target
+        # ...    echo out;>&2 echo err;sleep 10
+        # ...    ${target}
+        # ...    test
+        # Sleep    1
+        # RemoteScript.Kill Background Execution    test
+        # ${script}=    RemoteScript.Wait Background Execution    test
+        # #Should Be Equal    ${runner.status}    -15
+        # #Should Be Equal    ${runner.stdout}    out
+        # #Should Be Equal    ${runner.stderr}    err
+        # Log  ${script.status}
+        # Log  ${script.stdout}
+        # Log  ${script.stderr}
     END
     # No comparison with the RemoteScript can be done because there is a bugs
     # in the RemotScript background execution functionality Using instead
     # comparison with results which RemoteScript should ideally return
-
-    Should Be Equal    ${runner.status}    -15
-    Should Be Equal    ${runner.stdout}    out
-    Should Be Equal    ${runner.stderr}    err
+    # See https://github.com/nokia/crl-remotescript/issues/11
 
 
 Compare File Copying
@@ -183,27 +202,27 @@ Compare File Copying
     [Teardown]  Remove Files Locally And In Target
 *** Test Cases ***
 
-Templated Compare File Copying
-    [Template]  Compare File Copying
-    target1  target2
-    target2  target1
+#Templated Compare File Copying
+#    [Template]  Compare File Copying
+#    target1  target2
+#    target2  target1
+#
+#Templated Compare Execute Command In Target
+#    [Template]  Compare Execute Command In Target
+#    target1
+#    target2
 
-Templated Compare Execute Command In Target
-    [Template]  Compare Execute Command In Target
-    target1
-    target2
 
+#Templated Compare Copy Directory To Target
+#    [Template]  Compare Copy Directory To Target
+#    target1
+#    target2
 
-Templated Compare Copy Directory To Target
-    [Template]  Compare Execute Command In Target
-    target1
-    target2
-
-Templated Compare Create Directory In Target
-    [Template]  Compare Create Directory In Target
-    target1
-    target2
-
+#Templated Compare Create Directory In Target
+#    [Template]  Compare Create Directory In Target
+#    target1
+#    target2
+#
 Templated Compare Execute Background Command In Target
     [Template]  Compare Execute Background Command In Target
     target1

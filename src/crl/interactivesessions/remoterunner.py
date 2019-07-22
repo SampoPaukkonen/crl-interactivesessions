@@ -285,7 +285,7 @@ class RemoteRunner(object):
     @staticmethod
     def set_default_target_property(property_name, property_value):
         """
-        Sets default property for all targets.
+        Sets default property for all future targets.
 
         Target specific properties override the default values. See
         \`Set Target Property\` for supported properties.
