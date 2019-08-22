@@ -31,8 +31,7 @@ CHILD_MODULES = [msgs,
 LOGGER = logging.getLogger(__name__)
 
 # Workaround for remote import bug
-msgs = msgmanager.msgs
-msghandlers.msgs = msgs
+msghandlers.msgs = msgmanager.msgs
 
 
 class HandlerMap(namedtuple('HandlerMap', ['requestcls', 'handler_factory'])):
@@ -61,8 +60,14 @@ class ServerBase(msgmanager.MsgManagerBase):
         try:
             while True:
                 self.handle_next_msg()
-        except exceptions.ExitFromServe:
-            pass
+        except Exception as exc:  # pylint: disable=broad-except
+            msg = '{cls}: {msg}\nTraceback:\n{tb}'.format(
+                cls=exc.__class__.__name__,
+                msg=str(exc),
+                tb=''.join(traceback.format_list(
+                    traceback.extract_tb(sys.exc_info()[2]))))
+            LOGGER.debug("==== ServerBase: serve: exit exception msg = %s", msg)
+            # Not sure if here should be raise exceptions.ExitFromServe()
 
     def _send_server_id_reply(self):
         msg = msgs.ServerIdReply.create(self._server_id)
@@ -77,11 +82,11 @@ class ServerBase(msgmanager.MsgManagerBase):
             else:
                 self._send_ack_if_needed(msg)
                 self._reply_cached_or_handle_msg(msg)
-        except Exception as e:  # pylint: disable=broad-except
+        except Exception as exc:  # pylint: disable=broad-except
             self._send_reply(msgs.FatalPythonErrorReply.create(
                 '{cls}: {msg}\nTraceback:\n{tb}'.format(
-                    cls=e.__class__.__name__,
-                    msg=str(e),
+                    cls=exc.__class__.__name__,
+                    msg=str(exc),
                     tb=''.join(traceback.format_list(
                         traceback.extract_tb(sys.exc_info()[2]))))))
             raise exceptions.ExitFromServe()

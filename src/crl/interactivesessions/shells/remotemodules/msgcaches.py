@@ -22,9 +22,9 @@ class MsgCaches(object):
         self._msgcaches[msg.uid] = MsgCache(msg, self._retry, send_msg=self._send_msg)
 
     def send_expired(self):
-        for uid, c in list(self._msgcaches.items()):
-            c.send_expired(self._elapsed)
-            if c.timeout == Infinite():
+        for uid, cache in list(self._msgcaches.items()):
+            cache.send_expired(self._elapsed)
+            if cache.timeout == Infinite():
                 self._remove(uid)
         self._lap = self._monotonic.time()
 
@@ -50,21 +50,21 @@ class MsgCaches(object):
 
     @property
     def timeout_args(self):
-        t = self.timeout
-        return [] if t == Infinite() else [t]
+        duration = self.timeout
+        return [1] if duration == Infinite() else [duration]
 
     def _timeouts_gen(self):
-        for _, c in self._msgcaches.items():
-            yield c.timeout
+        for _, cache in self._msgcaches.items():
+            yield cache.timeout
 
     @property
     def msgs(self):
         return list(self._msg_gen())
 
     def _msg_gen(self):
-        for _, c in self._msgcaches.items():
-            for m in c.msgs:
-                yield m
+        for _, cache in self._msgcaches.items():
+            for message in cache.msgs:
+                yield message
 
 
 class MsgCachesAlreadyRemoved(Exception):
@@ -138,11 +138,11 @@ class Monotonic(object):
         self._previous_time = time.time()
 
     def time(self):
-        t = time.time()
-        corrected_time = t + self._delta
+        duration = time.time()
+        corrected_time = duration + self._delta
         if corrected_time <= self._previous_time:
             corrected_time = self._previous_time + self._min_incr
-            self._delta = corrected_time - t
+            self._delta = corrected_time - duration
 
         self._previous_time = corrected_time
         return corrected_time

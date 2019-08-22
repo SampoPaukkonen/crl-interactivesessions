@@ -150,17 +150,26 @@ class AutoRecoveringTerminal(object):
         self._prepare()
 
     def _retry(self, function, broken_exceptions):
+        exc = None
         for _ in range(self._max_tries):
             try:
                 return function()
             except broken_exceptions as e:
                 exc = e
-                LOGGER.debug('%s: %s\nBacktrace: \n%s',
-                             e.__class__.__name__, e,
-                             ''.join(traceback.format_list(
-                                 traceback.extract_tb(sys.exc_info()[2]))))
+                msg = '{cls}: {ms}\nBacktrace: \n{tb}%s'.format(
+                       cls=e.__class__.__name__,
+                       ms=str(e),
+                       tb=''.join(traceback.format_list(
+                           traceback.extract_tb(sys.exc_info()[2]))))
+                # msg = '{cls}: {msg}\nTraceback:\n{tb}'.format(
+                #     cls=e.__class__.__name__,
+                #     msg=str(e),
+                #     tb=''.join(traceback.format_list(
+                #         traceback.extract_tb(sys.exc_info()[2]))))
+                LOGGER.debug("==== AutoRecoveringTerminal: _retry: exception msg = %s", msg)
                 time.sleep(self._sleep_between_tries)
-
+        LOGGER.debug("==== AutoRecoveringTerminal: _retry: exc = %s", exc)
+        LOGGER.debug("==== AutoRecoveringTerminal: _retry: exc str repr = %s", str(exc))
         raise SessionInitializationFailed(exc)
 
     def _init_session(self):
